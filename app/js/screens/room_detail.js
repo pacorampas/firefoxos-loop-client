@@ -1,7 +1,7 @@
 (function(exports) {
   'use strict';
   var _panel;
-  var _roomNameUI, _ctimeUI, _ownerUI, _shareContactButton, _sharedWithButton, _editButton,
+  var _roomNameUI, _ctimeUI, _ownerUI, _shareContactButton, _sharedWithItem, _sharedWithButton, _editButton,
       _showHistoryButton, _deleteButton, _backButton, _expirationUI, _urlUI;
   var _room = null, _token = null;
   var _isOwner = false;
@@ -49,6 +49,7 @@
     _ownerUI = document.getElementById('rdp-owner');
     _urlUI = document.getElementById('rdp-url');
     _shareContactButton = document.getElementById('rdp-share-contact');
+    _sharedWithItem = document.getElementById('rdp-invitees-section');
     _sharedWithButton = document.getElementById('rdp-show-invitees');
     _showHistoryButton = document.getElementById('rdp-show-history');
     _deleteButton = document.getElementById('rdp-delete');
@@ -72,6 +73,7 @@
 
     if (_isOwner) {
       _ownerUI.textContent = _('createdByYou');
+      _sharedWithItem.classList.remove('hidden');
     } else {
       navigator.mozL10n.localize(_ownerUI, 'createdBy', {
         owner: _room.roomOwner
@@ -91,6 +93,7 @@
           });
         }
       );
+      _sharedWithItem.classList.add('hidden');
     }
 
     _urlUI.textContent = room.roomUrl;
@@ -130,6 +133,7 @@
         },
         function onShared(contact, identity) {
           Controller.onRoomShared(_room, contact, identity);
+          _sharedWithButton.disabled = false;
         },
         function onError() {
           // TOOD Implement if needed
@@ -141,8 +145,19 @@
 
   function _showSharedWith(){
     var people = _room.sharedWith || [];
+    var peopleFilterd = [];    
+    people.forEach(function(element){
+      var exist = peopleFilterd.some(function(item){
+        if(element.contactId == item.contactId) {
+          return true;
+        }
+      });
+      if(!exist) {
+        peopleFilterd.push(element);
+      }
+    });
     Loader.getSharedWith().then(function(SharedWith) {
-        SharedWith.show(people);
+        SharedWith.show(peopleFilterd);
     });
   }
 
